@@ -17,12 +17,10 @@ A Instagram Reel scraper API built with Node.js, Express, Selenium, and Chrome, 
 insta_scraper_railway/
 ├── api_server.js      # Express API server
 ├── scraper.js         # Instagram scraping logic (Selenium)
-├── test.js            # Test script for API
 ├── cookies.json       # Instagram session cookies
 ├── package.json       # Node.js dependencies
 ├── package-lock.json  # Dependency lock file
 ├── Dockerfile         # Docker build instructions
-└── README.md          # (this file)
 ```
 
 ---
