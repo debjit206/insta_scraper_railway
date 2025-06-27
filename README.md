@@ -87,7 +87,7 @@ Content-Type: application/json
 
 const axios = require('axios');
 
-const API_URL = 'http://localhost:3000/scrape';
+const API_URL = 'your_api_url';
 
 // Replace with a real username and post_link for actual test
 const payload = {
