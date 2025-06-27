@@ -1,14 +1,12 @@
 # Instagram Scraper 
 
-A Instagram Reel scraper API built with Node.js, Express, Selenium, and Chrome, designed for easy deployment on Railway using Docker.
-
+An Instagram Reel scraper API built with Node.js, Express, Selenium, and Chrome.
 ---
 
 ## 🚀 Features
 - Scrapes Instagram Reel data (caption, likes, comments, views, timestamp) for a given username and post link.
 - Exposes a simple HTTP API endpoint (`/scrape`) for integration.
-- Uses cookies.json for Instagram login/session (no manual login required).
-- Ready for deployment on Railway (or any Docker-compatible platform).
+- Uses cookies.json for Instagram login (no manual login required).
 
 ---
 
@@ -58,20 +56,6 @@ Content-Type: application/json
 
 ---
 
-## 🚢 Deployment (Railway or Docker)
-
-1. **Clone or fork this repo.**
-2. **Add your `cookies.json`** (Instagram session cookies) to the project root.
-3. **Deploy to Railway:**
-   - Connect your GitHub repo to Railway.
-   - Railway will auto-detect the Dockerfile and build your app with Chrome included.
-   - No extra configuration needed!
-4. **Or run locally with Docker:**
-   ```sh
-   docker build -t insta-scraper .
-   docker run -p 3000:3000 insta-scraper
-   ```
-
 ---
 
 ## 🧪 Testing the API (with `test.js`)
@@ -80,7 +64,7 @@ Content-Type: application/json
    ```sh
    npm install
    ```
-2. **Edit `test.js`** to set your deployed Railway URL (or localhost if running locally):
+2. **Edit `test.js`** to set your deployed URL (or localhost if running locally):
 
 ```js
 // please install axios: npm install axios
@@ -131,6 +115,4 @@ axios.post(API_URL, payload)
 
 ## ⚠️ Notes
 - Make sure your `cookies.json` is valid and up-to-date for Instagram login.
-- This project is for educational and research purposes. Use responsibly and respect Instagram's terms of service.
-
 ---
