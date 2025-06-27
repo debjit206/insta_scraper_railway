@@ -463,12 +463,9 @@ class InstagramScraper {
               for (const commentsElement of commentsElements) {
                 const commentsText = await commentsElement.getText();
                 if (commentsText) {
-                  const numbers = commentsText.match(/\d+/g);
-                  if (numbers) {
-                    postData.commentsCount = this.parseCount(numbers[0]);
-                    commentsFound = true;
-                    break;
-                  }
+                  postData.commentsCount = this.parseCount(commentsText);
+                  commentsFound = true;
+                  break;
                 }
               }
               if (commentsFound) break;
@@ -686,13 +683,10 @@ class InstagramScraper {
                     if (commentsText.toLowerCase().includes('view all')) {
                       const match = commentsText.toLowerCase().match(/view all (\d+)/);
                       if (match) {
-                        postData.commentsCount = this.parseCount(match[1]);
+                        postData.commentsCount = this.parseCount(commentsText);
                       }
                     } else {
-                      const numbers = commentsText.match(/\d+/g);
-                      if (numbers) {
-                        postData.commentsCount = this.parseCount(numbers[0]);
-                      }
+                      postData.commentsCount = this.parseCount(commentsText);
                     }
                     if (postData.commentsCount > 0) {
                       console.log(`💬 Found ${postData.commentsCount} comments`);
@@ -1030,13 +1024,17 @@ class InstagramScraper {
           allTexts.push(text);
           if (
             text &&
-            ( /\d/.test(text) &&
-              (text.toLowerCase().includes('view') ||
-               text.toLowerCase().includes('k') ||
-               text.toLowerCase().includes('m'))
-            )
+            /\d/.test(text)
           ) {
-            return { found: text, all: allTexts };
+            // Accept if it contains 'view', 'k', 'm', or is just a number with commas
+            if (
+              text.toLowerCase().includes('view') ||
+              text.toLowerCase().includes('k') ||
+              text.toLowerCase().includes('m') ||
+              /^\d{1,3}(,\d{3})*(\.\d+)?$/.test(text)
+            ) {
+              return { found: text, all: allTexts };
+            }
           }
         }
         return { found: null, all: allTexts };
@@ -1168,12 +1166,9 @@ class InstagramScraper {
                 for (const commentsElement of commentsElements) {
                   const commentsText = await commentsElement.getText();
                   if (commentsText) {
-                    const numbers = commentsText.match(/\d+/g);
-                    if (numbers) {
-                      postData.commentsCount = this.parseCount(numbers[0]);
-                      commentsFound = true;
-                      break;
-                    }
+                    postData.commentsCount = this.parseCount(commentsText);
+                    commentsFound = true;
+                    break;
                   }
                 }
                 if (commentsFound) break;
@@ -1371,12 +1366,9 @@ class InstagramScraper {
               for (const commentsElement of commentsElements) {
                 const commentsText = await commentsElement.getText();
                 if (commentsText) {
-                  const numbers = commentsText.match(/\d+/g);
-                  if (numbers) {
-                    postData.commentsCount = this.parseCount(numbers[0]);
-                    commentsFound = true;
-                    break;
-                  }
+                  postData.commentsCount = this.parseCount(commentsText);
+                  commentsFound = true;
+                  break;
                 }
               }
               if (commentsFound) break;
