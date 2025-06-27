@@ -81,7 +81,8 @@ Content-Type: application/json
    npm install
    ```
 2. **Edit `test.js`** to set your deployed Railway URL (or localhost if running locally):
-   ```js
+
+```js
 // please install axios: npm install axios
 
 const axios = require('axios');
@@ -106,7 +107,7 @@ axios.post(API_URL, payload)
       console.error('Request Error:', error.message);
     }
   });    
-  ```
+```
 3. **Run the test script:**
    ```sh
    node test.js
