@@ -1,6 +1,6 @@
 # Instagram Scraper Railway API
 
-A production-ready Instagram Reel/Post scraper API built with Node.js, Express, Selenium, and Chrome, designed for easy deployment on Railway using Docker.
+A Instagram Reel scraper API built with Node.js, Express, Selenium, and Chrome, designed for easy deployment on Railway using Docker.
 
 ---
 
@@ -114,6 +114,3 @@ Content-Type: application/json
 - This project is for educational and research purposes. Use responsibly and respect Instagram's terms of service.
 
 ---
-
-## 📄 License
-MIT 
