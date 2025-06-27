@@ -1,0 +1,20 @@
+{
+  "name": "instagram-mobile-scraper",
+  "version": "1.0.0",
+  "description": "Instagram Mobile Scraper API using Selenium.",
+  "main": "api_server.js",
+  "scripts": {
+    "start": "node api_server.js"
+  },
+  "dependencies": {
+    "axios": "^1.10.0",
+    "body-parser": "^2.2.0",
+    "chromedriver": "^138.0.0",
+    "dotenv": "^16.6.0",
+    "express": "^5.1.0",
+    "luxon": "^3.4.4",
+    "selenium-webdriver": "^4.33.0"
+  },
+  "author": "",
+  "license": "MIT"
+}
