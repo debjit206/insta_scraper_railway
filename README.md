@@ -82,10 +82,30 @@ Content-Type: application/json
    ```
 2. **Edit `test.js`** to set your deployed Railway URL (or localhost if running locally):
    ```js
-   const API_URL = 'https://instascraperrailway-production.up.railway.app/scrape';
-   // or
-   // const API_URL = 'http://localhost:3000/scrape';
-   ```
+// please install axios: npm install axios
+
+const axios = require('axios');
+
+const API_URL = 'http://localhost:3000/scrape';
+
+// Replace with a real username and post_link for actual test
+const payload = {
+  username: 'usernaame',
+  post_link: 'https://www.instagram.com/reel/reel_ID/'
+};
+
+axios.post(API_URL, payload)
+  .then(response => {
+    console.log('API Response:');
+    console.log(JSON.stringify(response.data, null, 2));
+  })
+  .catch(error => {
+    if (error.response) {
+      console.error('API Error:', error.response.status, error.response.data);
+    } else {
+      console.error('Request Error:', error.message);
+    }
+  });    ```
 3. **Run the test script:**
    ```sh
    node test.js
