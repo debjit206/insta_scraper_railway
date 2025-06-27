@@ -48,7 +48,7 @@ Content-Type: application/json
   "url": "https://www.instagram.com/beingsalmankhan/reel/DJ-IpMVokFU/",
   "caption": "Abhi raat hai, subah Sooraj chamkega",
   "likesCount": 2114256,
-  "commentsCount": 21,
+  "commentsCount": 21000,
   "viewCount": 35300000,
   "timestamp": "2025-05-22T21:27:38.000Z"
 }
@@ -105,7 +105,7 @@ axios.post(API_URL, payload)
      "url": "https://www.instagram.com/beingsalmankhan/reel/DJ-IpMVokFU/",
      "caption": "Abhi raat hai, subah Sooraj chamkega",
      "likesCount": 2114256,
-     "commentsCount": 21,
+     "commentsCount": 21000,
      "viewCount": 35300000,
      "timestamp": "2025-05-22T21:27:38.000Z"
    }
