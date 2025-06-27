@@ -1,7 +1,6 @@
-// Node.js Instagram Scraper using Selenium and Google Sheets
+// Node.js Instagram Scraper using Selenium
 const { Builder, By, until } = require('selenium-webdriver');
 require('chromedriver'); // Ensure chromedriver is installed and available
-const { google } = require('googleapis');
 const dotenv = require('dotenv');
 const fs = require('fs');
 const path = require('path');
@@ -9,18 +8,8 @@ const { DateTime } = require('luxon'); // For datetime handling
 const readline = require('readline');
 dotenv.config();
 
-const SHEET_ID = process.env.GOOGLE_SHEET_ID;
-const SHEET_NAME = process.env.GOOGLE_SHEET_NAME || 'Sheet1';
-const CREDENTIALS_PATH = process.env.GOOGLE_CREDENTIALS_FILE || 'credentials.json';
-
 class InstagramScraper {
   constructor() {
-    // Google Sheets connection
-    this.sheetId = process.env.GOOGLE_SHEET_ID;
-    this.sheetName = process.env.GOOGLE_SHEET_NAME || 'Sheet1';
-    this.credentialsPath = process.env.GOOGLE_CREDENTIALS_FILE || 'credentials.json';
-    this.sheets = null;
-
     // Selenium WebDriver initialization
     this.driver = null;
     this.scrapedData = [];
@@ -30,7 +19,6 @@ class InstagramScraper {
       'div[data-media-type="Reels"] a',  // Reels container
       'div[role="tabpanel"] a[href*="/reel/"]'  // Reels in tab panel
     ];
-
     // JavaScript to expand truncated content
     this.EXPAND_CONTENT_JS = `
         (async () => {
@@ -40,7 +28,6 @@ class InstagramScraper {
                 'button._aacl._aaco._aacu',
                 'button[role="button"]'
             ];
-
             for (const selector of moreButtonSelectors) {
                 const buttons = document.querySelectorAll(selector);
                 for (const button of buttons) {
@@ -53,106 +40,68 @@ class InstagramScraper {
                     }
                 }
             }
-
             // Wait for possible dynamic content loading
             await new Promise(r => setTimeout(r, 1500));
         })();
     `;
-    
     this.MODAL_SELECTORS = {
-            'grid_views': [
-        'span[class*="videoViews"]',  // Video views in grid
-        'span[class*="view-count"]',  // View count in grid
-        'span._ac2a',  // Common view count class
-        'span._aacl._aaco',  // Another common view class
-        'span:has(svg[aria-label*="view"])',  // View icon with count
-        'span:has(svg[aria-label="Play"]) + span'  // Count next to play icon
-            ],
-            'views': [
-        'span[class*="view-count"]',  // Direct view count
-        'span:has-text("views")',  // Text containing views
-        'span[role="button"]:has-text("views")',  // View count button
-        'section span:has-text("views")',  // Views in section
-        'div[role="button"] span:has-text("views")'  // Views in button
-            ],
-            'likes': [
-        'section span[role="button"]',  // Primary role-based selector
-        'a[role="link"] span[role="button"]',  // Link-based role selector 
-        'span[role="button"]',  // Generic role selector
-        'div[role="button"] span',  // Nested role selector
-        'section div span span:not([role])',  // Generic likes counter
-        'a[href*="/liked_by/"] span',  // Liked by link
-        'section > div > div > span',  // Covers "Liked by X and others" pattern
-        'div[role="presentation"] > div > div > span',  // Presentation role variation
-        'article div > span > span',  // Deep nested structure
-        'span[aria-label*="like"], span[aria-label*="view"]',  // Aria-labeled engagement
-        'div > span > span:not([role])',  // Most generic fallback
-        'section div[role="button"]',  // Alternative role structure
-        'div[role="button"] div[dir="auto"]',  // Auto-direction text in button
-        'section span[aria-label*="like"], section span[aria-label*="view"]',  // Direct access to aria labels
-        'article > section span:not([role])'  // Article-specific likes
-            ],
-            'caption': [
-        'h1._aagv span[dir="auto"]',  // Main caption text element
-        'h1[dir="auto"]',             // Alternative caption text element
-        'div._a9zs span[dir="auto"]',  // Backup caption selector
-        'div._a9zs h1',               // Another possible caption container
-        'div[role="menuitem"] span',  // Another variation
-        'article div._a9zs',          // Container that includes username + caption
-        'div.C4VMK > span'           // Legacy selector as fallback
-            ],
-            'more_button': [
-        'div._a9zs button',           // "more" button in caption
-        'button._aacl._aaco._aacu',   // Another variation of more button
-        'button[role="button"]'       // Generic button fallback
-            ],
-            'comments': [
-        'span._aacl._aaco._aacw._aacz._aada',  // Primary comment count selector
-        'section span[aria-label*="comment"]',  // Generic comment count
-        'a[href*="/comments/"] span'           // Backup selector for comment counts
-            ],
-            'date': [
-                'time._aaqe[datetime]',
-                'time[datetime]'
-            ]
+      'grid_views': [
+        'span[class*="videoViews"]',
+        'span[class*="view-count"]',
+        'span._ac2a',
+        'span._aacl._aaco',
+        'span:has(svg[aria-label*="view"])',
+        'span:has(svg[aria-label="Play"]) + span'
+      ],
+      'views': [
+        'span[class*="view-count"]',
+        'span:has-text("views")',
+        'span[role="button"]:has-text("views")',
+        'section span:has-text("views")',
+        'div[role="button"] span:has-text("views")'
+      ],
+      'likes': [
+        'section span[role="button"]',
+        'a[role="link"] span[role="button"]',
+        'span[role="button"]',
+        'div[role="button"] span',
+        'section div span span:not([role])',
+        'a[href*="/liked_by/"] span',
+        'section > div > div > span',
+        'div[role="presentation"] > div > div > span',
+        'article div > span > span',
+        'span[aria-label*="like"], span[aria-label*="view"]',
+        'div > span > span:not([role])',
+        'section div[role="button"]',
+        'div[role="button"] div[dir="auto"]',
+        'section span[aria-label*="like"], section span[aria-label*="view"]',
+        'article > section span:not([role])'
+      ],
+      'caption': [
+        'h1._aagv span[dir="auto"]',
+        'h1[dir="auto"]',
+        'div._a9zs span[dir="auto"]',
+        'div._a9zs h1',
+        'div[role="menuitem"] span',
+        'article div._a9zs',
+        'div.C4VMK > span'
+      ],
+      'more_button': [
+        'div._a9zs button',
+        'button._aacl._aaco._aacu',
+        'button[role="button"]'
+      ],
+      'comments': [
+        'span._aacl._aaco._aacw._aacz._aada',
+        'section span[aria-label*="comment"]',
+        'a[href*="/comments/"] span'
+      ],
+      'date': [
+        'time._aaqe[datetime]',
+        'time[datetime]'
+      ]
     };
     this.userDataDir = './user_data';
-  }
-
-  async setupGoogleSheets() {
-    // Initialize connection to Google Sheets
-    try {
-      const credentials = JSON.parse(fs.readFileSync(this.credentialsPath));
-      const scopes = [
-        'https://www.googleapis.com/auth/spreadsheets',
-        'https://www.googleapis.com/auth/drive',
-      ];
-      const auth = new google.auth.GoogleAuth({
-        credentials,
-        scopes,
-      });
-      this.sheets = google.sheets({ version: 'v4', auth });
-      console.log('✅ Connected to Google Sheet successfully');
-    } catch (e) {
-      console.log(`❌ Failed to connect to Google Sheets: ${e.message}`);
-      throw e;
-    }
-  }
-
-  async getSheetData() {
-    const res = await this.sheets.spreadsheets.values.get({
-      spreadsheetId: this.sheetId,
-      range: this.sheetName,
-    });
-    const rows = res.data.values;
-    if (!rows || rows.length < 2) throw new Error('No data found in sheet');
-    const headers = rows[0];
-    const data = rows.slice(1).map(row => {
-      const obj = {};
-      headers.forEach((h, i) => { obj[h] = row[i] || ''; });
-      return obj;
-    });
-    return { headers, data };
   }
 
   async setupBrowser() {
@@ -1501,43 +1450,6 @@ class InstagramScraper {
       // Ignore errors if popup is not present
     }
   }
-}
-
-async function main() {
-  const scraper = new InstagramScraper();
-  try {
-    console.log("📊 Connecting to Google Sheets...");
-    await scraper.setupGoogleSheets(); // Setup Google Sheets connection first
-
-    console.log("🌐 Setting up browser...");
-    await scraper.setupBrowser();
-
-    console.log("🔑 Checking Instagram login...");
-    const loginSuccess = await scraper.loginInstagram();
-
-    if (!loginSuccess) {
-      console.log("❌ Login failed. Exiting...");
-      return;
-    }
-
-    // profiles from Google Sheet
-    console.log("🔄 Starting scraping process...");
-    await scraper.scrapeFromSheet();
-
-    console.log(`\n✅ Scraping complete!`);
-  } catch (e) {
-    console.log(`❌ Main execution error: ${e.message}`);
-  } finally {
-    // cleanup but preserve session
-    await scraper.cleanup();
-    process.exit(0);
-  }
-}
-
-if (require.main === module) {
-  console.log("🚀 Instagram Mobile Scraper Starting...");
-  console.log("=".repeat(50));
-  main();
 }
 
 module.exports = { InstagramScraper };
