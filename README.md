@@ -70,12 +70,10 @@ const RETRY_ATTEMPTS = 3; // Number of retries for failed requests
 async function testBulkRequest() {
   console.log('\n=== Testing Bulk Request ===');
   const bulkPayload = {
-    usernames: ['cristiano', 'virat.kohli', 'virat.kohli','beingsalmankhan'],
+    usernames: ['cristiano', 'virat.kohli'],
     post_links: [
       'https://www.instagram.com/reel/DJq5DRiM1QR/',
-      'https://www.instagram.com/reel/DAVB2YZP9IQ/',
-      'https://www.instagram.com/reel/C7T1G7atdWA/',
-      'https://www.instagram.com/reel/DHusQqqoCEX/'
+      'https://www.instagram.com/reel/DAVB2YZP9IQ/'
     ],
     retry: RETRY_ATTEMPTS
   };
