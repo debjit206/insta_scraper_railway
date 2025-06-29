@@ -60,15 +60,13 @@ Content-Type: application/json
 
 const axios = require('axios');
 
-//const API_URL = 'https://instascraperrailway-production.up.railway.app/scrape';
-const API_URL = 'http://localhost:3000/scrape';
+const API_URL = 'YOUR_API_URL';
 
-// Configuration
 const RETRY_ATTEMPTS = 3; // Number of retries for failed requests
 
 // Test bulk request
 async function testBulkRequest() {
-  console.log('\n=== Testing Bulk Request ===');
+  console.log('\n=== Bulk Request ===');
   const bulkPayload = {
     usernames: ['cristiano', 'virat.kohli'],
     post_links: [
@@ -93,7 +91,6 @@ async function testBulkRequest() {
   }
 }
 
-// Run the test
 if (require.main === module) {
   testBulkRequest();
 }
