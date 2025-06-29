@@ -141,31 +141,48 @@ class InstagramScraper {
       console.log("🔄 Checking Instagram login status...");
       await this.setupBrowser();
       await this.driver.get('https://www.instagram.com/');
-      await this.driver.sleep(2000);
+      await this.driver.sleep(3000); // Give more time for initial load
 
       // Try to load cookies if cookies.json exists
       let cookiesLoaded = false;
       if (fs.existsSync('cookies.json')) {
-        const cookies = JSON.parse(fs.readFileSync('cookies.json', 'utf8'));
-        for (const cookie of cookies) {
-          // Remove 'sameSite' if it causes issues
-          const { sameSite, ...rest } = cookie;
-          try {
-            await this.driver.manage().addCookie(rest);
-          } catch (e) {
-            // Some cookies may not be settable, ignore errors
+        console.log("🍪 Found cookies.json, attempting to load...");
+        try {
+          const cookies = JSON.parse(fs.readFileSync('cookies.json', 'utf8'));
+          console.log(`📦 Loading ${cookies.length} cookies...`);
+          
+          for (const cookie of cookies) {
+            // Remove 'sameSite' if it causes issues
+            const { sameSite, ...rest } = cookie;
+            try {
+              await this.driver.manage().addCookie(rest);
+            } catch (e) {
+              console.log(`⚠️ Could not set cookie ${cookie.name}: ${e.message}`);
+            }
           }
+          
+          console.log("🔄 Refreshing page after loading cookies...");
+          await this.driver.navigate().refresh();
+          await this.driver.sleep(3000); // Give more time for refresh
+          
+          // Check if cookies worked
+          const loggedIn = await this.checkLoginStatus();
+          if (loggedIn) {
+            console.log('✅ Successfully logged in using cookies!');
+            // Dismiss any popups that might appear
+            await this.dismissSaveLoginInfoPopup();
+            await this.dismissAutomatedBehaviorPopup();
+            return true;
+          } else {
+            console.log('⚠️ Cookies appear to be invalid or expired.');
+            console.log('🔄 Will proceed with manual login...');
+          }
+        } catch (e) {
+          console.error(`❌ Error loading cookies: ${e.message}`);
+          console.log('🔄 Will proceed with manual login...');
         }
-        await this.driver.navigate().refresh();
-        await this.driver.sleep(2000);
-        // Check if cookies worked
-        const loggedIn = await this.checkLoginStatus();
-        if (loggedIn) {
-          console.log('✅ Logged in using cookies!');
-          return true;
-        } else {
-          console.log('⚠️ Cookies invalid, please log in manually.');
-        }
+      } else {
+        console.log("📝 No cookies.json found, will need manual login");
       }
 
       // Wait for manual login and user confirmation
@@ -179,10 +196,22 @@ class InstagramScraper {
           });
         });
         if (answer === 'yes' || answer === 'y') {
+          // Verify login status
+          const isLoggedIn = await this.checkLoginStatus();
+          if (!isLoggedIn) {
+            console.log("⚠️ Login detection failed. Please try logging in again or check the screenshot.");
+            continue;
+          }
+          
+          // Dismiss any popups that might appear after login
+          await this.dismissSaveLoginInfoPopup();
+          await this.dismissAutomatedBehaviorPopup();
+          
           // Save cookies
+          console.log("💾 Saving cookies...");
           const cookies = await this.driver.manage().getCookies();
           fs.writeFileSync('cookies.json', JSON.stringify(cookies, null, 2));
-          console.log("✅ Cookies saved to cookies.json");
+          console.log(`✅ Saved ${cookies.length} cookies to cookies.json`);
           console.log("✅ Proceeding with scraping...");
           return true;
         } else {
@@ -199,7 +228,15 @@ class InstagramScraper {
   async checkLoginStatus() {
     // Check if we're logged into Instagram by looking for multiple indicators
     try {
-      await this.driver.sleep(2000);
+      await this.driver.sleep(3000); // Give more time for page to load
+      
+      // First, check if we're redirected to login page
+      const currentUrl = await this.driver.getCurrentUrl();
+      if (currentUrl.includes('/accounts/login') || currentUrl.includes('/login')) {
+        console.log("⚠️ Redirected to login page - not logged in");
+        return false;
+      }
+
       // Check for login-required elements
       let loginElements = [];
       try {
@@ -211,33 +248,86 @@ class InstagramScraper {
         console.log("⚠️ Login form detected - not logged in");
         return false;
       }
-      // Check for home feed indicators
-      const homeIndicators = [
-        'a[href*="/p/"]',  // Post links
-        'button[aria-label*="Like"]',  // Like buttons
-        'svg[aria-label="Home"]',  // Home icon
-        'a[href="/"]'  // Home link
+
+      // More comprehensive logged-in indicators
+      const loggedInIndicators = [
+        // Navigation elements
+        'nav a[href="/"]', // Home link in nav
+        'nav a[href="/explore/"]', // Explore link
+        'nav a[href="/reels/"]', // Reels link
+        'nav a[href="/direct/inbox/"]', // Messages link
+        'nav a[href="/accounts/activity/"]', // Activity link
+        
+        // User-specific elements
+        'img[data-testid="user-avatar"]', // User avatar
+        'a[href*="/accounts/activity/"]', // Activity link
+        'button[aria-label*="Profile"]', // Profile button
+        
+        // Content elements that only appear when logged in
+        'a[href*="/p/"]', // Post links
+        'button[aria-label*="Like"]', // Like buttons
+        'button[aria-label*="Comment"]', // Comment buttons
+        
+        // Search elements
+        'input[placeholder*="Search"]', // Search input
+        'a[href="/explore/"]', // Explore link
+        
+        // More general indicators
+        'svg[aria-label="Home"]', // Home icon
+        'svg[aria-label="Search"]', // Search icon
+        'svg[aria-label="New post"]', // New post icon
+        'svg[aria-label="Activity Feed"]', // Activity icon
+        'svg[aria-label="Direct messaging"]' // Messages icon
       ];
-      for (const selector of homeIndicators) {
+
+      console.log("🔍 Checking for logged-in indicators...");
+      
+      for (const selector of loggedInIndicators) {
         try {
           const elements = await this.driver.findElements(By.css(selector));
           if (elements.length > 0) {
+            console.log(`✅ Found logged-in indicator: ${selector}`);
             return true;
           }
         } catch (e) {
           continue;
         }
       }
-      // Additional check - look for logged-in user avatar
+
+      // Additional check - look for any navigation menu
       try {
-        const avatar = await this.driver.findElements(By.css('img[data-testid="user-avatar"]'));
-        if (avatar.length > 0) {
+        const navElements = await this.driver.findElements(By.css('nav, [role="navigation"]'));
+        if (navElements.length > 0) {
+          console.log("✅ Found navigation menu - likely logged in");
           return true;
         }
       } catch (e) {
         // ignore
       }
+
+      // Check if we can access user-specific content
+      try {
+        const userSpecificElements = await this.driver.findElements(By.css('[data-testid*="user"], [aria-label*="user"]'));
+        if (userSpecificElements.length > 0) {
+          console.log("✅ Found user-specific elements - likely logged in");
+          return true;
+        }
+      } catch (e) {
+        // ignore
+      }
+
       console.log("⚠️ No logged-in indicators found");
+      
+      // Take a screenshot for debugging
+      try {
+        await this.driver.takeScreenshot().then(data => {
+          fs.writeFileSync('login_debug.png', data, 'base64');
+          console.log("📸 Screenshot saved as login_debug.png for debugging");
+        });
+      } catch (e) {
+        console.log("⚠️ Could not take screenshot for debugging");
+      }
+      
       return false;
     } catch (e) {
       console.error(`❌ Error checking login status: ${e.message}`);
@@ -734,6 +824,8 @@ class InstagramScraper {
     try {
       // Dismiss the 'Save your login info?' popup if present
       await this.dismissSaveLoginInfoPopup();
+      // Dismiss the 'automated behavior' popup if present
+      await this.dismissAutomatedBehaviorPopup();
       // Get all records
       const res = await this.sheets.spreadsheets.values.get({
         spreadsheetId: this.sheetId,
@@ -1440,6 +1532,82 @@ class InstagramScraper {
       }
     } catch (e) {
       // Ignore errors if popup is not present
+    }
+  }
+
+  async dismissAutomatedBehaviorPopup() {
+    try {
+      await this.driver.sleep(2000);
+
+      // Look for the "Dismiss" button in the automated behavior popup
+      // Using the specific selectors from the HTML you provided
+      const dismissSelectors = [
+        // Primary selector based on the HTML structure
+        'div[role="button"][aria-label="Dismiss"]',
+        // Alternative selectors
+        'div[data-bloks-name="bk.components.Flexbox"][role="button"][aria-label="Dismiss"]',
+        // Text-based selectors
+        'div[role="button"] span:contains("Dismiss")',
+        'button span:contains("Dismiss")',
+        // XPath for more specific targeting
+        '//div[@role="button" and @aria-label="Dismiss"]',
+        '//span[text()="Dismiss"]/ancestor::div[@role="button"]',
+        // Fallback: any clickable element with "Dismiss" text
+        '//*[contains(text(), "Dismiss") and (@role="button" or @tabindex="0")]'
+      ];
+
+      for (const selector of dismissSelectors) {
+        try {
+          let elements;
+          if (selector.startsWith('//')) {
+            // XPath selector
+            elements = await this.driver.findElements(By.xpath(selector));
+          } else {
+            // CSS selector
+            elements = await this.driver.findElements(By.css(selector));
+          }
+          
+          if (elements.length > 0) {
+            // Try to click the first matching element
+            await elements[0].click();
+            console.log('✅ Dismissed "automated behavior" popup');
+            await this.driver.sleep(1000);
+            return true;
+          }
+        } catch (e) {
+          continue;
+        }
+      }
+
+      // Additional fallback: look for any element with "Dismiss" text that's clickable
+      try {
+        const allElements = await this.driver.findElements(By.xpath('//*[contains(text(), "Dismiss")]'));
+        for (const element of allElements) {
+          try {
+            const tagName = await element.getTagName();
+            const role = await element.getAttribute('role');
+            const tabIndex = await element.getAttribute('tabindex');
+            
+            // Check if it's clickable
+            if (tagName === 'button' || role === 'button' || tabIndex === '0') {
+              await element.click();
+              console.log('✅ Dismissed "automated behavior" popup (fallback)');
+              await this.driver.sleep(1000);
+              return true;
+            }
+          } catch (e) {
+            continue;
+          }
+        }
+      } catch (e) {
+        // Ignore errors
+      }
+
+      console.log('ℹ️ No "automated behavior" popup found to dismiss');
+      return false;
+    } catch (e) {
+      console.log(`⚠️ Error dismissing automated behavior popup: ${e.message}`);
+      return false;
     }
   }
 }
