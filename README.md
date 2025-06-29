@@ -9,6 +9,7 @@ An Instagram Reel scraper API built with Node.js, Express, Selenium, and Chrome.
 - Uses cookies.json for Instagram login (no manual login required).
 - Uses retry logic for failed outputs
 - Processes in bulk
+- Fresh browser sessions for each request to prevent crashes
 ---
 
 ## 📦 Project Structure
@@ -20,7 +21,28 @@ insta_scraper_railway/
 ├── package.json       # Node.js dependencies
 ├── package-lock.json  # Dependency lock file
 ├── Dockerfile         # Docker build instructions
+├── test.js           # Test script for API
 ```
+
+---
+
+## 🛠️ Setup & Installation
+
+1. **Install dependencies:**
+   ```sh
+   npm install
+   ```
+
+2. **Start the API server:**
+   ```sh
+   node api_server.js
+   ```
+   The server will start on port 3000 (or PORT environment variable).
+
+3. **Run the test script:**
+   ```sh
+   node test.js
+   ```
 
 ---
 
@@ -39,21 +61,21 @@ Content-Type: application/json
   "post_links": [
     "https://www.instagram.com/reel/DJq5DRiM1QR/",
     "https://www.instagram.com/reel/DAVB2YZP9IQ/"
-  ]
+  ],
+  "retry": 3
 }
 ```
 
----
+### Parameters
+- **usernames** (required): Array of Instagram usernames
+- **post_links** (required): Array of Instagram reel/post URLs
+- **retry** (optional): Number of retry attempts for failed requests (0-10, default: 3)
 
 ---
 
 ## 🧪 Testing the API (with `test.js`)
 
-1. **Install dependencies:**
-   ```sh
-   npm install
-   ```
-2. **Edit `test.js`** to set your deployed URL (or localhost if running locally):
+1. **Edit `test.js`** to set your API URL:
 
 ```js
 // Test script for Instagram Scraper API
@@ -61,13 +83,13 @@ Content-Type: application/json
 
 const axios = require('axios');
 
-const API_URL = 'YOUR_API_URL';
+const API_URL = 'http://localhost:3000/scrape'; // Change to your API URL
 
 const RETRY_ATTEMPTS = 3; // Number of retries for failed requests
 
 // Test bulk request
 async function testBulkRequest() {
-  console.log('\n=== Bulk Request ===');
+  console.log('\n=== Testing Bulk Request ===');
   const bulkPayload = {
     usernames: ['cristiano', 'virat.kohli'],
     post_links: [
@@ -96,11 +118,13 @@ if (require.main === module) {
   testBulkRequest();
 }
 ```
-3. **Run the test script:**
+
+2. **Run the test script:**
    ```sh
    node test.js
    ```
-4. **You should see output like:**
+
+3. **You should see output like:**
 
 ```json
 [
@@ -133,4 +157,7 @@ if (require.main === module) {
 
 ## ⚠️ Notes
 - Make sure your `cookies.json` is valid and up-to-date for Instagram login.
+- The API uses fresh browser sessions for each request to prevent crashes.
+- Failed requests are automatically retried up to the specified retry limit.
+- Each retry attempt uses a new browser session for maximum reliability.
 ---
