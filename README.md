@@ -7,7 +7,8 @@ An Instagram Reel scraper API built with Node.js, Express, Selenium, and Chrome.
 - Scrapes Instagram Reel data (caption, likes, comments, views, timestamp) for a given username and post link.
 - Exposes a simple HTTP API endpoint (`/scrape`) for integration.
 - Uses cookies.json for Instagram login (no manual login required).
-
+- Uses retry logic for failed outputs
+- Processes in bulk
 ---
 
 ## 📦 Project Structure
