@@ -122,7 +122,6 @@ if (require.main === module) {
   }
 ]
    ```
-
 ---
 
 ## ⚠️ Notes
