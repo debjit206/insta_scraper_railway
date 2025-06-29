@@ -1303,6 +1303,7 @@ class InstagramScraper {
       console.log(`🔄 Scraping specific reel from: ${reelsUrl} for post: ${postLink}`);
       await this.driver.get(reelsUrl);
       await this.driver.sleep(3000);
+      
       // Extract reel ID from postLink
       let targetReelId = null;
       const reelPatterns = [
@@ -1324,6 +1325,7 @@ class InstagramScraper {
         console.log("❌ Could not extract reel/post ID from postLink");
         return null;
       }
+      
       // Find all reel elements
       let postElements = [];
       for (const selector of this.POST_SELECTORS) {
@@ -1336,10 +1338,12 @@ class InstagramScraper {
           continue;
         }
       }
+      
       if (!postElements.length) {
         console.log("⚠️ No post elements found using any selector");
         return null;
       }
+      
       // Find the element matching the target reel ID, with scrolling if not found
       let targetElement = null;
       const maxScrolls = 3;
@@ -1355,10 +1359,12 @@ class InstagramScraper {
             continue;
           }
         }
+        
         if (!targetElement && scrollAttempt < maxScrolls - 1) {
           // Scroll down and wait for more reels to load
           await this.driver.executeScript('window.scrollBy(0, 1000);');
           await this.driver.sleep(2000);
+          
           // Re-fetch post elements after scroll
           postElements = [];
           for (const selector of this.POST_SELECTORS) {
@@ -1373,10 +1379,12 @@ class InstagramScraper {
           }
         }
       }
+      
       if (!targetElement) {
         console.log(`❌ Target reel ${targetReelId} not found in reels tab after scrolling`);
         return null;
       }
+      
       // Scrape the reel data (extract view count from grid, then open in new tab for rest)
       const postData = {
         url: '',
@@ -1459,8 +1467,8 @@ class InstagramScraper {
                 const commentsText = await commentsElement.getText();
                 if (commentsText) {
                   postData.commentsCount = this.parseCount(commentsText);
-                  commentsFound = true;
-                  break;
+                    commentsFound = true;
+                    break;
                 }
               }
               if (commentsFound) break;
