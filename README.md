@@ -97,7 +97,7 @@ if (require.main === module) {
    ```
 4. **You should see output like:**
    ```json
-   [
+[
   {
     "username": "cristiano",
     "platform": "Instagram",
@@ -114,7 +114,7 @@ if (require.main === module) {
     "platform": "Instagram",
     "fetched": "Yes",
     "url": "https://www.instagram.com/virat.kohli/reel/DAVB2YZP9IQ/",
-    "caption": "Ab se life insurance matlab, Digit Life Insurance. That’s it. 😎",
+    "caption": "Ab se life insurance matlab, Digit Life Insurance. That's it. 😎",
     "likesCount": 1793549,
     "commentsCount": 13561,
     "viewCount": 28700000,
