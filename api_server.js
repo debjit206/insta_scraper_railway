@@ -17,106 +17,72 @@ app.use(bodyParser.json());
 // Helper to create a new scraper instance and run bulk scrape
 async function scrapeInstagramBulk(usernames, post_links) {
   const InstagramScraper = scraperModule.InstagramScraper || scraperModule.default || scraperModule;
-  const scraper = new InstagramScraper();
   const results = [];
   
-  try {
-    console.log("🔄 Setting up browser for bulk processing...");
-    await scraper.setupBrowser();
+  console.log(`🎯 Starting bulk scrape for ${usernames.length} items...`);
+  
+  // Process each username and post_link pair with fresh browser session
+  for (let i = 0; i < usernames.length; i++) {
+    const username = usernames[i];
+    const post_link = post_links[i];
+    let scraper = null;
     
-    // Try to login using cookies.json (no manual login in API mode)
-    let cookiesLoaded = false;
-    const cookiesPath = path.join(__dirname, 'cookies.json');
+    console.log(`\n[${i + 1}/${usernames.length}] Processing: ${username} for post: ${post_link}`);
     
-    if (fs.existsSync(cookiesPath)) {
-      console.log("🍪 Found cookies.json, attempting to load...");
-      try {
-        await scraper.driver.get('https://www.instagram.com/');
-        await scraper.driver.sleep(3000); // Give more time for initial load
-        
-        const cookies = JSON.parse(fs.readFileSync(cookiesPath, 'utf8'));
-        console.log(`📦 Loading ${cookies.length} cookies...`);
-        
-        for (const cookie of cookies) {
-          const { sameSite, ...rest } = cookie;
-          try {
-            await scraper.driver.manage().addCookie(rest);
-          } catch (e) {
-            console.log(`⚠️ Could not set cookie ${cookie.name}: ${e.message}`);
+    try {
+      // Create fresh scraper instance for each request
+      scraper = new InstagramScraper();
+      console.log("🔄 Setting up fresh browser session...");
+      await scraper.setupBrowser();
+      
+      // Try to login using cookies.json
+      let cookiesLoaded = false;
+      const cookiesPath = path.join(__dirname, 'cookies.json');
+      
+      if (fs.existsSync(cookiesPath)) {
+        console.log("🍪 Found cookies.json, attempting to load...");
+        try {
+          await scraper.driver.get('https://www.instagram.com/');
+          await scraper.driver.sleep(3000);
+          
+          const cookies = JSON.parse(fs.readFileSync(cookiesPath, 'utf8'));
+          console.log(`📦 Loading ${cookies.length} cookies...`);
+          
+          for (const cookie of cookies) {
+            const { sameSite, ...rest } = cookie;
+            try {
+              await scraper.driver.manage().addCookie(rest);
+            } catch (e) {
+              console.log(`⚠️ Could not set cookie ${cookie.name}: ${e.message}`);
+            }
           }
+          
+          console.log("🔄 Refreshing page after loading cookies...");
+          await scraper.driver.navigate().refresh();
+          await scraper.driver.sleep(3000);
+          
+          cookiesLoaded = await scraper.checkLoginStatus();
+          
+          if (cookiesLoaded) {
+            console.log('✅ Successfully logged in using cookies!');
+            await scraper.dismissSaveLoginInfoPopup();
+            await scraper.dismissAutomatedBehaviorPopup();
+          } else {
+            throw new Error('Instagram cookies.json is invalid or expired.');
+          }
+        } catch (e) {
+          console.error(`❌ Error loading cookies: ${e.message}`);
+          throw new Error(`Failed to load cookies: ${e.message}`);
         }
-        
-        console.log("🔄 Refreshing page after loading cookies...");
-        await scraper.driver.navigate().refresh();
-        await scraper.driver.sleep(3000); // Give more time for refresh
-        
-        // Use the improved login detection
-        cookiesLoaded = await scraper.checkLoginStatus();
-        
-        if (cookiesLoaded) {
-          console.log('✅ Successfully logged in using cookies!');
-          // Dismiss any popups that might appear
-          await scraper.dismissSaveLoginInfoPopup();
-          await scraper.dismissAutomatedBehaviorPopup();
-        } else {
-          console.log('⚠️ Cookies appear to be invalid or expired.');
-          throw new Error('Instagram cookies.json is invalid or expired. Please generate new cookies using generate_cookies.js');
-        }
-      } catch (e) {
-        console.error(`❌ Error loading cookies: ${e.message}`);
-        throw new Error(`Failed to load cookies: ${e.message}`);
+      } else {
+        throw new Error('Instagram cookies.json not found.');
       }
-    } else {
-      console.log("📝 No cookies.json found");
-      throw new Error('Instagram cookies.json not found. Please generate cookies using generate_cookies.js');
-    }
-    
-    // Process each username and post_link pair
-    console.log(`🎯 Starting bulk scrape for ${usernames.length} items...`);
-    
-    for (let i = 0; i < usernames.length; i++) {
-      const username = usernames[i];
-      const post_link = post_links[i];
       
-      console.log(`\n[${i + 1}/${usernames.length}] Processing: ${username} for post: ${post_link}`);
+      // Scrape the specific reel/post
+      const reelsUrl = `https://www.instagram.com/${username}/reels/`;
+      const postData = await scraper.scrapeSpecificReelFromReelsTab(reelsUrl, post_link);
       
-      try {
-        // Scrape the specific reel/post
-        const reelsUrl = `https://www.instagram.com/${username}/reels/`;
-        const postData = await scraper.scrapeSpecificReelFromReelsTab(reelsUrl, post_link);
-        
-        if (!postData) {
-          results.push({
-            username,
-            platform: 'Instagram',
-            fetched: 'No',
-            url: post_link,
-            caption: 'nan',
-            likesCount: 0,
-            commentsCount: 0,
-            viewCount: 0,
-            timestamp: 'nan'
-          });
-        } else {
-          results.push({
-            username,
-            platform: 'Instagram',
-            fetched: 'Yes',
-            ...postData
-          });
-        }
-        
-        console.log(`✅ Successfully processed ${username}`);
-        
-        // Add delay between requests to avoid rate limiting (except for last request)
-        if (i < usernames.length - 1) {
-          const delay = 5; // 5 seconds delay
-          console.log(`⏳ Waiting ${delay} seconds before next request...`);
-          await scraper.driver.sleep(delay * 1000);
-        }
-        
-      } catch (e) {
-        console.error(`❌ Error processing ${username}: ${e.message}`);
+      if (!postData) {
         results.push({
           username,
           platform: 'Instagram',
@@ -126,24 +92,26 @@ async function scrapeInstagramBulk(usernames, post_links) {
           likesCount: 0,
           commentsCount: 0,
           viewCount: 0,
-          timestamp: 'nan',
-          error: e.message
+          timestamp: 'nan'
+        });
+      } else {
+        results.push({
+          username,
+          platform: 'Instagram',
+          fetched: 'Yes',
+          ...postData
         });
       }
-    }
-    
-    console.log(`\n✅ Bulk scraping complete! Processed ${results.length} items`);
-    return results;
-    
-  } catch (e) {
-    console.error(`❌ Error in scrapeInstagramBulk: ${e.message}`);
-    // Return error results for all items
-    for (let i = 0; i < usernames.length; i++) {
+      
+      console.log(`✅ Successfully processed ${username}`);
+      
+    } catch (e) {
+      console.error(`❌ Error processing ${username}: ${e.message}`);
       results.push({
-        username: usernames[i],
+        username,
         platform: 'Instagram',
         fetched: 'No',
-        url: post_links[i],
+        url: post_link,
         caption: 'nan',
         likesCount: 0,
         commentsCount: 0,
@@ -151,15 +119,28 @@ async function scrapeInstagramBulk(usernames, post_links) {
         timestamp: 'nan',
         error: e.message
       });
-    }
-    return results;
-  } finally {
-    // Clean up browser after all requests
-    if (scraper && scraper.cleanup) {
-      await scraper.cleanup();
-      console.log("🧹 Browser cleanup complete");
+    } finally {
+      // Clean up browser after each request
+      if (scraper && scraper.cleanup) {
+        try {
+          await scraper.cleanup();
+          console.log(`🧹 Browser cleanup complete for ${username}`);
+        } catch (e) {
+          console.log(`⚠️ Error during cleanup for ${username}: ${e.message}`);
+        }
+      }
+      
+      // Add delay between requests
+      if (i < usernames.length - 1) {
+        const delay = 3;
+        console.log(`⏳ Waiting ${delay} seconds before next request...`);
+        await new Promise(resolve => setTimeout(resolve, delay * 1000));
+      }
     }
   }
+  
+  console.log(`\n✅ Bulk scraping complete! Processed ${results.length} items`);
+  return results;
 }
 
 app.post('/scrape', async (req, res) => {
