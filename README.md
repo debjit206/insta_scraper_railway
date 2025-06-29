@@ -33,25 +33,11 @@ Content-Type: application/json
 
 ### Request Body
 ```json
-{
-  "username": "beingsalmankhan",
-  "post_link": "https://www.instagram.com/reel/DJ-IpMVokFU/"
-}
-```
-
-### Example Response
-```json
-{
-  "username": "beingsalmankhan",
-  "platform": "Instagram",
-  "fetched": "Yes",
-  "url": "https://www.instagram.com/beingsalmankhan/reel/DJ-IpMVokFU/",
-  "caption": "Abhi raat hai, subah Sooraj chamkega",
-  "likesCount": 2114256,
-  "commentsCount": 21000,
-  "viewCount": 35300000,
-  "timestamp": "2025-05-22T21:27:38.000Z"
-}
+usernames: ['cristiano', 'virat.kohli'],
+    post_links: [
+      'https://www.instagram.com/reel/DJq5DRiM1QR/',
+      'https://www.instagram.com/reel/DAVB2YZP9IQ/'
+    ]
 ```
 
 ---
@@ -109,17 +95,30 @@ if (require.main === module) {
    ```
 4. **You should see output like:**
    ```json
-   {
-     "username": "beingsalmankhan",
-     "platform": "Instagram",
-     "fetched": "Yes",
-     "url": "https://www.instagram.com/beingsalmankhan/reel/DJ-IpMVokFU/",
-     "caption": "Abhi raat hai, subah Sooraj chamkega",
-     "likesCount": 2114256,
-     "commentsCount": 21000,
-     "viewCount": 35300000,
-     "timestamp": "2025-05-22T21:27:38.000Z"
-   }
+   [
+  {
+    "username": "cristiano",
+    "platform": "Instagram",
+    "fetched": "Yes",
+    "url": "https://www.instagram.com/cristiano/reel/DJq5DRiM1QR/",
+    "caption": "Have you heard the news? @uflgame got a big update recently! Season 2 is on! Go and play for free! UFL is available on",
+    "likesCount": 5384743,
+    "commentsCount": 447410,
+    "viewCount": 76300000,
+    "timestamp": "2025-05-15T10:04:14.000Z"
+  },
+  {
+    "username": "virat.kohli",
+    "platform": "Instagram",
+    "fetched": "Yes",
+    "url": "https://www.instagram.com/virat.kohli/reel/DAVB2YZP9IQ/",
+    "caption": "Ab se life insurance matlab, Digit Life Insurance. That’s it. 😎",
+    "likesCount": 1793549,
+    "commentsCount": 13561,
+    "viewCount": 28700000,
+    "timestamp": "2024-09-25T05:38:16.000Z"
+  }
+]
    ```
 
 ---
