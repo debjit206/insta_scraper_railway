@@ -67,30 +67,41 @@ Content-Type: application/json
 2. **Edit `test.js`** to set your deployed URL (or localhost if running locally):
 
 ```js
-// please install axios: npm install axios
+// Test script for Instagram Scraper API
+// Make sure to install axios: npm install axios
 
 const axios = require('axios');
 
-const API_URL = 'your_api_url';
+const API_URL = 'YOUR_API_URL';
 
-// Replace with a real username and post_link for actual test
-const payload = {
-  username: 'usernaame',
-  post_link: 'https://www.instagram.com/reel/reel_ID/'
-};
 
-axios.post(API_URL, payload)
-  .then(response => {
-    console.log('API Response:');
+// Test bulk request
+async function testBulkRequest() {
+  console.log('\n=== Testing Bulk Request ===');
+  const bulkPayload = {
+    usernames: ['cristiano', 'virat.kohli'],
+    post_links: [
+      'https://www.instagram.com/reel/DJq5DRiM1QR/',
+      'https://www.instagram.com/reel/DAVB2YZP9IQ/'    ]
+  };
+  
+  try {
+    const response = await axios.post(API_URL, bulkPayload);
+    console.log('Bulk Request Response:');
     console.log(JSON.stringify(response.data, null, 2));
-  })
-  .catch(error => {
+  } catch (error) {
     if (error.response) {
-      console.error('API Error:', error.response.status, error.response.data);
+      console.error('Bulk Request Error:', error.response.status, error.response.data);
     } else {
-      console.error('Request Error:', error.message);
+      console.error('Bulk Request Error:', error.message);
     }
-  });    
+  }
+}
+
+// Run the test
+if (require.main === module) {
+  testBulkRequest();
+}     
 ```
 3. **Run the test script:**
    ```sh
