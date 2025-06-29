@@ -96,7 +96,8 @@ if (require.main === module) {
    node test.js
    ```
 4. **You should see output like:**
-   ```json
+
+```json
 [
   {
     "username": "cristiano",
@@ -121,7 +122,8 @@ if (require.main === module) {
     "timestamp": "2024-09-25T05:38:16.000Z"
   }
 ]
-   ```
+```
+
 ---
 
 ## ⚠️ Notes
