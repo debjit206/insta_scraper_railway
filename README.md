@@ -79,22 +79,30 @@ Content-Type: application/json
 
 ```js
 // Test script for Instagram Scraper API
+// Usage: node test.js
 // Make sure to install axios: npm install axios
 
 const axios = require('axios');
 
-const API_URL = 'http://localhost:3000/scrape'; // Change to your API URL
+//const API_URL = 'https://instascraperrailway-production.up.railway.app/scrape';
+const API_URL = 'http://localhost:3000/scrape';
 
+// Configuration
 const RETRY_ATTEMPTS = 3; // Number of retries for failed requests
 
 // Test bulk request
 async function testBulkRequest() {
   console.log('\n=== Testing Bulk Request ===');
   const bulkPayload = {
-    usernames: ['cristiano', 'virat.kohli'],
-    post_links: [
-      'https://www.instagram.com/reel/DJq5DRiM1QR/',
-      'https://www.instagram.com/reel/DAVB2YZP9IQ/'
+    data: [
+      {
+        username: 'cristiano',
+        post_link: 'https://www.instagram.com/reel/DJq5DRiM1QR/',
+      },
+      {
+        username: 'virat.kohli',
+        post_link: 'https://www.instagram.com/reel/DAVB2YZP9IQ/',
+      }
     ],
     retry: RETRY_ATTEMPTS
   };
@@ -114,9 +122,10 @@ async function testBulkRequest() {
   }
 }
 
+// Run the test
 if (require.main === module) {
   testBulkRequest();
-}
+} 
 ```
 
 2. **Run the test script:**
