@@ -57,23 +57,24 @@ Content-Type: application/json
 ### Request Body
 ```json
 {
-    data: [
-      {
-        username: 'cristiano',
-        post_link: 'https://www.instagram.com/reel/DJq5DRiM1QR/',
-      },
-      {
-        username: 'virat.kohli',
-        post_link: 'https://www.instagram.com/reel/DAVB2YZP9IQ/',
-      }
-    ],
-    retry: RETRY_ATTEMPTS
+  "data": [
+    {
+      "username": "cristiano",
+      "post_link": "https://www.instagram.com/reel/DJq5DRiM1QR/"
+    },
+    {
+      "username": "virat.kohli",
+      "post_link": "https://www.instagram.com/reel/DAVB2YZP9IQ/"
+    }
+  ],
+  "retry": 3
 }
 ```
 
 ### Parameters
-- **usernames** (required): Array of Instagram usernames
-- **post_links** (required): Array of Instagram reel/post URLs
+- **data** (required): Array of objects, each with:
+  - **username** (required): Instagram username
+  - **post_link** (required): Instagram reel/post URL
 - **retry** (optional): Number of retry attempts for failed requests (0-10, default: 3)
 
 ---
