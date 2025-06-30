@@ -57,12 +57,17 @@ Content-Type: application/json
 ### Request Body
 ```json
 {
-  "usernames": ["cristiano", "virat.kohli"],
-  "post_links": [
-    "https://www.instagram.com/reel/DJq5DRiM1QR/",
-    "https://www.instagram.com/reel/DAVB2YZP9IQ/"
-  ],
-  "retry": 3
+    data: [
+      {
+        username: 'cristiano',
+        post_link: 'https://www.instagram.com/reel/DJq5DRiM1QR/',
+      },
+      {
+        username: 'virat.kohli',
+        post_link: 'https://www.instagram.com/reel/DAVB2YZP9IQ/',
+      }
+    ],
+    retry: RETRY_ATTEMPTS
 }
 ```
 
