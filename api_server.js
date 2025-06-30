@@ -157,31 +157,25 @@ async function scrapeInstagramBulk(usernames, post_links, maxRetries) {
 }
 
 app.post('/scrape', async (req, res) => {
-  const { usernames, post_links, retry = 3 } = req.body;
-  
-  // Validate bulk request format
-  if (!usernames || !post_links) {
-    return res.status(400).json({ error: 'usernames and post_links arrays are required' });
+  const { data, retry = 3 } = req.body;
+  if (!Array.isArray(data) || data.length === 0) {
+    return res.status(400).json({ error: 'data array is required and cannot be empty' });
   }
-  
-  if (!Array.isArray(usernames) || !Array.isArray(post_links)) {
-    return res.status(400).json({ error: 'usernames and post_links must be arrays' });
+  // Validate each item
+  const usernames = [];
+  const post_links = [];
+  for (const item of data) {
+    if (!item.username || !item.post_link) {
+      return res.status(400).json({ error: 'Each item in data must have username and post_link' });
+    }
+    usernames.push(item.username);
+    post_links.push(item.post_link);
   }
-  
-  if (usernames.length === 0 || post_links.length === 0) {
-    return res.status(400).json({ error: 'usernames and post_links arrays cannot be empty' });
-  }
-  
-  if (usernames.length !== post_links.length) {
-    return res.status(400).json({ error: 'usernames and post_links arrays must have the same length' });
-  }
-  
   // Validate retry parameter
   const maxRetries = parseInt(retry);
   if (isNaN(maxRetries) || maxRetries < 0 || maxRetries > 10) {
     return res.status(400).json({ error: 'retry must be a number between 0 and 10' });
   }
-  
   console.log(`[API] Received bulk scrape request for ${usernames.length} items with ${maxRetries} retries`);
   const results = await scrapeInstagramBulk(usernames, post_links, maxRetries);
   res.json(results);
@@ -190,28 +184,24 @@ app.post('/scrape', async (req, res) => {
 app.get('/', (req, res) => {
   res.send(`
     Instagram Scraper API is running.
-    
     <h3>Bulk Request Format:</h3>
-    POST to /scrape with { 
-      "usernames": ["user1", "user2", "user3"], 
-      "post_links": ["link1", "link2", "link3"],
+    POST to /scrape with {
+      "data": [
+        { "username": "user1", "post_link": "link1" },
+        { "username": "user2", "post_link": "link2" }
+      ],
       "retry": 3
     }
-    
     <h3>Parameters:</h3>
     <ul>
-      <li><strong>usernames</strong> (required): Array of Instagram usernames</li>
-      <li><strong>post_links</strong> (required): Array of Instagram reel/post URLs</li>
+      <li><strong>data</strong> (required): Array of objects with <code>username</code> and <code>post_link</code></li>
       <li><strong>retry</strong> (optional): Number of retry attempts for failed requests (0-10, default: 3)</li>
     </ul>
-    
     <h3>Single Request:</h3>
-    Use arrays with one item: { 
-      "usernames": ["user1"], 
-      "post_links": ["link1"],
+    Use an array with one item: {
+      "data": [ { "username": "user1", "post_link": "link1" } ],
       "retry": 5
     }
-    
     <h3>Response Format:</h3>
     <p>Returns an array of objects with scraped data. Failed requests include error details and retry count.</p>
   `);
