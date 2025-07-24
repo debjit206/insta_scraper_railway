@@ -118,7 +118,7 @@ class InstagramScraper {
       '--disable-logging',
       '--log-level=3',
       '--silent',
-      '--headless' // Always headless now
+      '--headless' 
     );
     // Set user agent for mobile
     options.addArguments(
@@ -141,7 +141,7 @@ class InstagramScraper {
       console.log("🔄 Checking Instagram login status...");
       await this.setupBrowser();
       await this.driver.get('https://www.instagram.com/');
-      await this.driver.sleep(3000); // Give more time for initial load
+      await this.driver.sleep(3000); // time for initial load
 
       // Try to load cookies if cookies.json exists
       let cookiesLoaded = false;
@@ -163,7 +163,7 @@ class InstagramScraper {
           
           console.log("🔄 Refreshing page after loading cookies...");
           await this.driver.navigate().refresh();
-          await this.driver.sleep(3000); // Give more time for refresh
+          await this.driver.sleep(3000); // time for refresh
           
           // Check if cookies worked
           const loggedIn = await this.checkLoginStatus();
@@ -228,9 +228,9 @@ class InstagramScraper {
   async checkLoginStatus() {
     // Check if we're logged into Instagram by looking for multiple indicators
     try {
-      await this.driver.sleep(3000); // Give more time for page to load
+      await this.driver.sleep(3000); // wait time for page to load
       
-      // First, check if we're redirected to login page
+      // check if we're redirected to login page
       const currentUrl = await this.driver.getCurrentUrl();
       if (currentUrl.includes('/accounts/login') || currentUrl.includes('/login')) {
         console.log("⚠️ Redirected to login page - not logged in");
@@ -353,8 +353,6 @@ class InstagramScraper {
       if (usernameMatch) {
         profileData.username = usernameMatch[1];
       }
-      // Remove all code that scrapes Name, Description, Followers, Avatar URL, and Total Posts
-      // ... existing code ...
       return profileData;
     } catch (e) {
       console.log(`❌ Error scraping ${profileUrl}: ${e.message}`);
@@ -395,7 +393,7 @@ class InstagramScraper {
       // reel ID from targetPostLink
       let targetReelId = null;
       if (targetPostLink) {
-        // reel ID from various URL formats (now supports /reel/ and /p/)
+        // reel ID from various URL formats (supports /reel/ and /p/)
         const reelPatterns = [
           /\/reel\/([^/?]+)/,
           /reel\/([^/?]+)/,
@@ -663,7 +661,6 @@ class InstagramScraper {
           continue;
         }
       }
-      // Use order as-is (Selenium cannot get x/y positions easily)
       const sortedElements = gridPosts.map(post => post.element);
       // Change number of posts to scrape here
       for (let i = 0; i < Math.min(sortedElements.length, 3); i++) {
@@ -820,7 +817,6 @@ class InstagramScraper {
   }
 
   async scrapeFromSheet() {
-    // profile URLs and post links from Google Sheet and scrape them
     try {
       // Dismiss the 'Save your login info?' popup if present
       await this.dismissSaveLoginInfoPopup();
