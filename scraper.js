@@ -133,12 +133,12 @@ class InstagramScraper {
       .setChromeOptions(options)
       .setChromeService(service)
       .build();
-    console.log("✅ Browser setup complete");
+    console.log("Browser setup complete");
   }
 
   async loginInstagram() {
     try {
-      console.log("🔄 Checking Instagram login status...");
+      console.log("Checking Instagram login status...");
       await this.setupBrowser();
       await this.driver.get('https://www.instagram.com/');
       await this.driver.sleep(3000); // time for initial load
@@ -146,10 +146,10 @@ class InstagramScraper {
       // Try to load cookies if cookies.json exists
       let cookiesLoaded = false;
       if (fs.existsSync('cookies.json')) {
-        console.log("🍪 Found cookies.json, attempting to load...");
+        console.log("Found cookies.json, attempting to load...");
         try {
           const cookies = JSON.parse(fs.readFileSync('cookies.json', 'utf8'));
-          console.log(`📦 Loading ${cookies.length} cookies...`);
+          console.log(`Loading ${cookies.length} cookies...`);
           
           for (const cookie of cookies) {
             // Remove 'sameSite' if it causes issues
@@ -157,37 +157,37 @@ class InstagramScraper {
             try {
               await this.driver.manage().addCookie(rest);
             } catch (e) {
-              console.log(`⚠️ Could not set cookie ${cookie.name}: ${e.message}`);
+              console.log(`Could not set cookie ${cookie.name}: ${e.message}`);
             }
           }
           
-          console.log("🔄 Refreshing page after loading cookies...");
+          console.log("Refreshing page after loading cookies...");
           await this.driver.navigate().refresh();
           await this.driver.sleep(3000); // time for refresh
           
           // Check if cookies worked
           const loggedIn = await this.checkLoginStatus();
           if (loggedIn) {
-            console.log('✅ Successfully logged in using cookies!');
+            console.log('Successfully logged in using cookies!');
             // Dismiss any popups that might appear
             await this.dismissSaveLoginInfoPopup();
             await this.dismissAutomatedBehaviorPopup();
             return true;
           } else {
-            console.log('⚠️ Cookies appear to be invalid or expired.');
-            console.log('🔄 Will proceed with manual login...');
+            console.log('Cookies appear to be invalid or expired.');
+            console.log('Will proceed with manual login...');
           }
         } catch (e) {
-          console.error(`❌ Error loading cookies: ${e.message}`);
-          console.log('🔄 Will proceed with manual login...');
+          console.error(`Error loading cookies: ${e.message}`);
+          console.log('Will proceed with manual login...');
         }
       } else {
-        console.log("📝 No cookies.json found, will need manual login");
+        console.log("No cookies.json found, will need manual login");
       }
 
       // Wait for manual login and user confirmation
       while (true) {
-        console.log("📱 Please log in manually in the browser window.");
+        console.log("Please log in manually in the browser window.");
         const answer = await new Promise(resolve => {
           const rl = readline.createInterface({ input: process.stdin, output: process.stdout });
           rl.question("Are you logged in to Instagram? (yes/no): ", ans => {
@@ -199,7 +199,7 @@ class InstagramScraper {
           // Verify login status
           const isLoggedIn = await this.checkLoginStatus();
           if (!isLoggedIn) {
-            console.log("⚠️ Login detection failed. Please try logging in again or check the screenshot.");
+            console.log("Login detection failed. Please try logging in again or check the screenshot.");
             continue;
           }
           
@@ -208,14 +208,14 @@ class InstagramScraper {
           await this.dismissAutomatedBehaviorPopup();
           
           // Save cookies
-          console.log("💾 Saving cookies...");
+          console.log("Saving cookies...");
           const cookies = await this.driver.manage().getCookies();
           fs.writeFileSync('cookies.json', JSON.stringify(cookies, null, 2));
-          console.log(`✅ Saved ${cookies.length} cookies to cookies.json`);
-          console.log("✅ Proceeding with scraping...");
+          console.log(`Saved ${cookies.length} cookies to cookies.json`);
+          console.log("Proceeding with scraping...");
           return true;
         } else {
-          console.log("⏳ Waiting 30 seconds for you to log in...");
+          console.log("Waiting 30 seconds for you to log in...");
           await this.driver.sleep(30000);
         }
       }
@@ -233,7 +233,7 @@ class InstagramScraper {
       // check if we're redirected to login page
       const currentUrl = await this.driver.getCurrentUrl();
       if (currentUrl.includes('/accounts/login') || currentUrl.includes('/login')) {
-        console.log("⚠️ Redirected to login page - not logged in");
+        console.log("Redirected to login page - not logged in");
         return false;
       }
 
@@ -245,7 +245,7 @@ class InstagramScraper {
         // ignore
       }
       if (loginElements.length > 0) {
-        console.log("⚠️ Login form detected - not logged in");
+        console.log("Login form detected - not logged in");
         return false;
       }
 
@@ -280,13 +280,13 @@ class InstagramScraper {
         'svg[aria-label="Direct messaging"]' // Messages icon
       ];
 
-      console.log("🔍 Checking for logged-in indicators...");
+      console.log("Checking for logged-in indicators...");
       
       for (const selector of loggedInIndicators) {
         try {
           const elements = await this.driver.findElements(By.css(selector));
           if (elements.length > 0) {
-            console.log(`✅ Found logged-in indicator: ${selector}`);
+            console.log(`Found logged-in indicator: ${selector}`);
             return true;
           }
         } catch (e) {
@@ -298,7 +298,7 @@ class InstagramScraper {
       try {
         const navElements = await this.driver.findElements(By.css('nav, [role="navigation"]'));
         if (navElements.length > 0) {
-          console.log("✅ Found navigation menu - likely logged in");
+          console.log("Found navigation menu - likely logged in");
           return true;
         }
       } catch (e) {
@@ -309,14 +309,14 @@ class InstagramScraper {
       try {
         const userSpecificElements = await this.driver.findElements(By.css('[data-testid*="user"], [aria-label*="user"]'));
         if (userSpecificElements.length > 0) {
-          console.log("✅ Found user-specific elements - likely logged in");
+          console.log("Found user-specific elements - likely logged in");
           return true;
         }
       } catch (e) {
         // ignore
       }
 
-      console.log("⚠️ No logged-in indicators found");
+      console.log("No logged-in indicators found");
       
       // Take a screenshot for debugging
       try {
@@ -325,12 +325,12 @@ class InstagramScraper {
           console.log("📸 Screenshot saved as login_debug.png for debugging");
         });
       } catch (e) {
-        console.log("⚠️ Could not take screenshot for debugging");
+        console.log("Could not take screenshot for debugging");
       }
       
       return false;
     } catch (e) {
-      console.error(`❌ Error checking login status: ${e.message}`);
+      console.error(`Error checking login status: ${e.message}`);
       return false;
     }
   }
@@ -338,7 +338,7 @@ class InstagramScraper {
   async scrapeProfile(profileUrl, targetPostLink = null) {
     // Scrape individual Instagram profile
     try {
-      console.log(`🔄 Scraping: ${profileUrl}`);
+      console.log(`Scraping: ${profileUrl}`);
       await this.driver.get(profileUrl);
       await this.driver.sleep(3000);
       // data structure
@@ -374,21 +374,21 @@ class InstagramScraper {
           try {
             await reelsTabs[0].click();
           } catch (e) {
-            console.log('⚠️ Click intercepted, retrying after 1s...');
+            console.log('Click intercepted, retrying after 1s...');
             await this.driver.sleep(1000);
             await reelsTabs[0].click();
           }
           await this.driver.sleep(3000);
-          console.log("✅ Switched to reels tab");
+          console.log("Switched to reels tab");
         } else {
-          console.log("⚠️ Could not find reels tab");
+          console.log("Could not find reels tab");
           return profileData;
         }
         // reels to be visible
-        console.log("🔍 Looking for reels...");
+        console.log("Looking for reels...");
         await this.driver.wait(until.elementLocated(By.css('a[href*="/reel/"]')), 5000);
       } catch (e) {
-        console.log(`⚠️ Error switching to reels tab: ${e.message}`);
+        console.log(`Error switching to reels tab: ${e.message}`);
       }
       // reel ID from targetPostLink
       let targetReelId = null;
@@ -406,13 +406,13 @@ class InstagramScraper {
           const match = targetPostLink.match(pattern);
           if (match) {
             targetReelId = match[1];
-            console.log(`🎯 Looking for reel/post ID: ${targetReelId}`);
+            console.log(`Looking for reel/post ID: ${targetReelId}`);
             break;
           }
         }
       }
       if (!targetReelId) {
-        console.log("❌ Could not extract reel/post ID from targetPostLink");
+        console.log("Could not extract reel/post ID from targetPostLink");
         return profileData;
       }
       // all reel elements
@@ -422,15 +422,15 @@ class InstagramScraper {
           const elements = await this.driver.findElements(By.css(selector));
           if (elements && elements.length > 0) {
             postElements = postElements.concat(elements);
-            console.log(`✅ Found ${elements.length} post elements using selector: ${selector}`);
+            console.log(`Found ${elements.length} post elements using selector: ${selector}`);
           }
         } catch (e) {
-          console.log(`⚠️ Error trying selector '${selector}': ${e.message}`);
+          console.log(`Error trying selector '${selector}': ${e.message}`);
           continue;
         }
       }
       if (!postElements.length) {
-        console.log("⚠️ No post elements found using any selector");
+        console.log("No post elements found using any selector");
         return profileData;
       }
       // Find the element matching the target reel ID, with scrolling if not found
@@ -573,10 +573,10 @@ class InstagramScraper {
           await this.driver.switchTo().window(handles[0]);
           await this.driver.sleep(1000);
         } catch (e) {
-          console.log(`⚠️ Error closing tab: ${e.message}`);
+          console.log(`Error closing tab: ${e.message}`);
         }
       } catch (e) {
-        console.log(`⚠️ Error processing target reel: ${e.message}`);
+        console.log(`Error processing target reel: ${e.message}`);
         return null;
       }
       posts.push(postData);
@@ -592,7 +592,7 @@ class InstagramScraper {
     // Extract data from top 5 posts of a profile
     const posts = [];
     try {
-      console.log("🎬 Switching to reels tab...");
+      console.log("Switching to reels tab...");
       try {
         const reelsTabs = await this.driver.findElements(By.css('a[href*="/reels/"]'));
         if (reelsTabs.length > 0) {
@@ -601,20 +601,20 @@ class InstagramScraper {
           try {
             await reelsTabs[0].click();
           } catch (e) {
-            console.log('⚠️ Click intercepted, retrying after 1s...');
+            console.log('Click intercepted, retrying after 1s...');
             await this.driver.sleep(1000);
             await reelsTabs[0].click();
           }
           await this.driver.sleep(3000);
-          console.log("✅ Switched to reels tab");
+          console.log("Switched to reels tab");
         } else {
-          console.log("⚠️ Could not find reels tab");
+          console.log("Could not find reels tab");
           return profileData;
         }
-        console.log("🔍 Looking for reels...");
+        console.log("Looking for reels...");
         await this.driver.wait(until.elementLocated(By.css('a[href*="/reel/"]')), 5000);
       } catch (e) {
-        console.log(`⚠️ Error switching to reels tab: ${e.message}`);
+        console.log(`Error switching to reels tab: ${e.message}`);
       }
       // Get page content for debugging
       const pageContent = await this.driver.getPageSource();
@@ -623,28 +623,28 @@ class InstagramScraper {
         try {
           const elements = await this.driver.findElements(By.css(selector));
           if (elements && elements.length > 0) {
-            console.log(`✅ Found ${elements.length} post elements using selector: ${selector}`);
+            console.log(`Found ${elements.length} post elements using selector: ${selector}`);
             // Debug first post element
             const firstPost = elements[0];
             const href = await firstPost.getAttribute('href');
-            console.log(`🔗 First post href: ${href}`);
+            console.log(`First post href: ${href}`);
             postElements = elements;
             break;
           } else {
-            console.log(`⚠️ No posts found with selector: ${selector}`);
+            console.log(`No posts found with selector: ${selector}`);
           }
         } catch (e) {
-          console.log(`⚠️ Error trying selector '${selector}': ${e.message}`);
+          console.log(`Error trying selector '${selector}': ${e.message}`);
           continue;
         }
       }
       // Check if we found any posts
       if (!postElements || postElements.length === 0) {
-        console.log("⚠️ No post elements found using any selector");
+        console.log("No post elements found using any selector");
         return profileData;
       }
       // Enhanced grid-based sorting
-      console.log("📊 Analyzing post grid layout...");
+      console.log("Analyzing post grid layout...");
       const gridPosts = [];
       for (const postElement of postElements) {
         try {
@@ -657,7 +657,7 @@ class InstagramScraper {
             });
           }
         } catch (e) {
-          console.log(`⚠️ Error processing grid item: ${e.message}`);
+          console.log(`Error processing grid item: ${e.message}`);
           continue;
         }
       }
@@ -678,18 +678,18 @@ class InstagramScraper {
           sharesCount: ""
         };
         try {
-          console.log("🔍 Extracting view count from grid...");
+          console.log("Extracting view count from grid...");
           const gridViews = await this.extractGridViewCount(postElement);
           if (gridViews > 0) {
             postData.viewCount = gridViews;
-            console.log(`✅ Found grid view count: ${gridViews}`);
+            console.log(`Found grid view count: ${gridViews}`);
           } else {
-            console.log("⚠️ No view count found in grid");
+            console.log("No view count found in grid");
           }
           // post URL
           const postUrl = await postElement.getAttribute('href');
           if (!postUrl) {
-            console.log("⚠️ Could not extract post URL");
+            console.log("Could not extract post URL");
             continue;
           }
           if (postUrl.startsWith('http')) {
@@ -697,7 +697,7 @@ class InstagramScraper {
           } else {
             postData.url = `https://www.instagram.com${postUrl}`;
           }
-          console.log(`🔗 Processing post ${i + 1}/3: ${postData.url}`);
+          console.log(`Processing post ${i + 1}/3: ${postData.url}`);
           // Open post in new tab
           await this.driver.executeScript('window.open(arguments[0], "_blank");', postData.url);
           const handles = await this.driver.getAllWindowHandles();
@@ -724,7 +724,7 @@ class InstagramScraper {
                     }
                     cleanCaption = cleanCaption.replace('... more', '').trim();
                     postData.caption = cleanCaption;
-                    console.log(`📝 Found caption: ${cleanCaption.substring(0, 100)}...`);
+                    console.log(`Found caption: ${cleanCaption.substring(0, 100)}...`);
                     captionFound = true;
                     break;
                   }
@@ -747,7 +747,7 @@ class InstagramScraper {
                 const timestamp = await dateElement.getAttribute('datetime');
                 if (timestamp) {
                   postData.timestamp = timestamp;
-                  console.log(`📅 Found timestamp: ${timestamp}`);
+                  console.log(`Found timestamp: ${timestamp}`);
                   break;
                 }
               }
@@ -776,7 +776,7 @@ class InstagramScraper {
                       postData.commentsCount = this.parseCount(commentsText);
                     }
                     if (postData.commentsCount > 0) {
-                      console.log(`💬 Found ${postData.commentsCount} comments`);
+                      console.log(`Found ${postData.commentsCount} comments`);
                       break;
                     }
                   }
@@ -792,7 +792,7 @@ class InstagramScraper {
             }
           }
           posts.push(postData);
-          console.log(`✅ Successfully extracted post ${i + 1}/3`);
+          console.log(`Successfully extracted post ${i + 1}/3`);
           // close the new tab
           try {
             await this.driver.close();
@@ -809,9 +809,9 @@ class InstagramScraper {
       }
       // update profile data
       profileData.posts = posts;
-      console.log(`✅ Successfully extracted ${posts.length} posts`);
+      console.log(`Successfully extracted ${posts.length} posts`);
     } catch (e) {
-      console.log(`❌ Error in post extraction: ${e.message}`);
+      console.log(`Error in post extraction: ${e.message}`);
     }
     return profileData;
   }
@@ -829,7 +829,7 @@ class InstagramScraper {
       });
       const rows = res.data.values;
       if (!rows || rows.length < 2) {
-        console.log('❌ No data found in sheet');
+        console.log('No data found in sheet');
         return;
       }
       const headers = rows[0];
@@ -837,7 +837,7 @@ class InstagramScraper {
       let usernameColIdx = headers.indexOf('username');
       let postLinkColIdx = headers.indexOf('post_link');
       if (usernameColIdx === -1 || postLinkColIdx === -1) {
-        console.log('❌ Required columns "username" or "post_link" not found in sheet');
+        console.log('Required columns "username" or "post_link" not found in sheet');
         console.log(`Available columns: ${headers}`);
         return;
       }
@@ -878,13 +878,13 @@ class InstagramScraper {
           await this.driver.sleep(delay * 1000);
         }
       }
-      console.log(`\n✅ Scraping complete!`);
+      console.log(`\n Scraping complete!`);
       // Print the results as JSON
       console.log('\n===== JSON OUTPUT =====');
       console.log(JSON.stringify(results, null, 2));
       console.log('=======================\n');
     } catch (e) {
-      console.log(`❌ Error reading from sheet: ${e.message}`);
+      console.log(`Error reading from sheet: ${e.message}`);
     }
   }
 
@@ -898,7 +898,7 @@ class InstagramScraper {
       const sheetName = workbook.SheetNames[0];
       const worksheet = workbook.Sheets[sheetName];
       const data = XLSX.utils.sheet_to_json(worksheet);
-      console.log(`📊 Found ${data.length} profiles to scrape`);
+      console.log(` Found ${data.length} profiles to scrape`);
       const urlColumns = ['url', 'link', 'profile_url', 'instagram_url'];
       let urlColumn = null;
       for (const col of urlColumns) {
@@ -908,12 +908,12 @@ class InstagramScraper {
         }
       }
       if (!urlColumn) {
-        console.log("❌ Could not find URL column in Excel file");
+        console.log("Could not find URL column in Excel file");
         console.log(`Available columns: ${Object.keys(data[0] || {})}`);
         return;
       }
       const profileUrls = data.map(row => row[urlColumn]).filter(url => url);
-      console.log(`🎯 Starting to scrape ${profileUrls.length} profiles...`);
+      console.log(`Starting to scrape ${profileUrls.length} profiles...`);
       for (let i = 0; i < profileUrls.length; i++) {
         const url = profileUrls[i];
         console.log(`\n[${i + 1}/${profileUrls.length}] Processing: ${url}`);
@@ -928,9 +928,9 @@ class InstagramScraper {
           await this.driver.sleep(delay * 1000);
         }
       }
-      console.log(`\n✅ Scraping complete! Successfully scraped ${this.scrapedData.length} profiles`);
+      console.log(`\n Scraping complete! Successfully scraped ${this.scrapedData.length} profiles`);
     } catch (e) {
-      console.log(`❌ Error reading Excel file: ${e.message}`);
+      console.log(`Error reading Excel file: ${e.message}`);
     }
   }
 
@@ -938,15 +938,15 @@ class InstagramScraper {
     // Print scraping summary
     try {
       if (!this.scrapedData || this.scrapedData.length === 0) {
-        console.log("❌ No data to save");
+        console.log("No data to save");
         return;
       }
-      console.log(`\n📊 Scraping Summary:`);
+      console.log(`\n Scraping Summary:`);
       console.log(`Total profiles scraped: ${this.scrapedData.length}`);
       console.log(`Profiles with followers data: ${this.scrapedData.filter(item => item.followers).length}`);
       console.log(`Profiles with fetched reels: ${this.scrapedData.filter(item => item.fetched === 'Yes').length}`);
     } catch (e) {
-      console.log(`❌ Error saving results: ${e.message}`);
+      console.log(`Error saving results: ${e.message}`);
     }
   }
 
@@ -955,7 +955,7 @@ class InstagramScraper {
     if (this.driver) {
       await this.driver.quit();
     }
-    console.log("🧹 Cleanup complete - Session data preserved");
+    console.log("Cleanup complete - Session data preserved");
   }
 
   parseCount(text) {
@@ -991,7 +991,7 @@ class InstagramScraper {
       // No suffix or suffix is something else (like "likes")
       return parseInt(baseNumber);
     } catch (e) {
-      console.log(`⚠️ Error parsing count from '${text}': ${e.message}`);
+      console.log(`Error parsing count from '${text}': ${e.message}`);
       return 0;
     }
   }
@@ -1036,7 +1036,7 @@ class InstagramScraper {
             if (likesText && likesText.toLowerCase().includes('likes')) {
               likesCount = this.parseCount(likesText);
               if (likesCount > 0) {
-                console.log(`✅ Found visible likes: ${likesText} = ${likesCount}`);
+                console.log(`Found visible likes: ${likesText} = ${likesCount}`);
                 return likesCount;
               }
             }
@@ -1061,11 +1061,11 @@ class InstagramScraper {
               if (match) {
                 const othersCount = parseInt(match[1].replace(/,/g, ''));
                 likesCount = othersCount + 1;  // +1 for the named user
-                console.log(`✅ Found 'liked by' format: ${likedText} = ${likesCount}`);
+                console.log(`Found 'liked by' format: ${likedText} = ${likesCount}`);
                 return likesCount;
               } else {
                 // "Liked by username and others" without count
-                console.log(`⚠️ Hidden likes detected: ${likedText}`);
+                console.log(`Hidden likes detected: ${likedText}`);
                 return 0;  // Hidden likes count
               }
             }
@@ -1083,18 +1083,18 @@ class InstagramScraper {
           if (spanText && /\d+.*likes?/i.test(spanText)) {
             likesCount = this.parseCount(spanText);
             if (likesCount > 0) {
-              console.log(`✅ Found likes via fallback: ${spanText} = ${likesCount}`);
+              console.log(`Found likes via fallback: ${spanText} = ${likesCount}`);
               return likesCount;
             }
           }
         }
       } catch (e) {
-        console.log(`⚠️ Fallback method failed: ${e.message}`);
+        console.log(`Fallback method failed: ${e.message}`);
       }
-      console.log("⚠️ No likes count found - may be hidden");
+      console.log("No likes count found - may be hidden");
       return 0;
     } catch (e) {
-      console.log(`❌ Error extracting likes: ${e.message}`);
+      console.log(`Error extracting likes: ${e.message}`);
       return 0;
     }
   }
@@ -1130,7 +1130,7 @@ class InstagramScraper {
 
       if (jsResult) {
         if (jsResult.all) {
-          console.log('🔍 All span texts in grid:', jsResult.all);
+          console.log('All span texts in grid:', jsResult.all);
         }
         if (jsResult.found) {
           const count = this.parseCount(jsResult.found);
@@ -1141,7 +1141,7 @@ class InstagramScraper {
       }
       return 0;
     } catch (e) {
-      console.log(`❌ Error extracting grid view count: ${e.message}`);
+      console.log(`Error extracting grid view count: ${e.message}`);
       return 0;
     }
   }
@@ -1149,7 +1149,7 @@ class InstagramScraper {
   async scrapeReelsTab(reelsUrl) {
     // Directly scrape all reels from a /reels/ URL
     try {
-      console.log(`🔄 Scraping reels tab: ${reelsUrl}`);
+      console.log(`Scraping reels tab: ${reelsUrl}`);
       await this.driver.get(reelsUrl);
       await this.driver.sleep(3000);
       // Find all reel elements
@@ -1159,15 +1159,15 @@ class InstagramScraper {
           const elements = await this.driver.findElements(By.css(selector));
           if (elements && elements.length > 0) {
             postElements = postElements.concat(elements);
-            console.log(`✅ Found ${elements.length} post elements using selector: ${selector}`);
+            console.log(`Found ${elements.length} post elements using selector: ${selector}`);
           }
         } catch (e) {
-          console.log(`⚠️ Error trying selector '${selector}': ${e.message}`);
+          console.log(`Error trying selector '${selector}': ${e.message}`);
           continue;
         }
       }
       if (!postElements.length) {
-        console.log("⚠️ No post elements found using any selector");
+        console.log("No post elements found using any selector");
         return [];
       }
       // For each reel, extract data
@@ -1279,16 +1279,16 @@ class InstagramScraper {
             await this.driver.switchTo().window(handles[0]);
             await this.driver.sleep(1000);
           } catch (e) {
-            console.log(`⚠️ Error closing tab: ${e.message}`);
+            console.log(`Error closing tab: ${e.message}`);
           }
         } catch (e) {
-          console.log(`⚠️ Error processing reel: ${e.message}`);
+          console.log(`Error processing reel: ${e.message}`);
           continue;
         }
       }
       return reelsData;
     } catch (e) {
-      console.log(`❌ Error scraping reels tab: ${e.message}`);
+      console.log(`Error scraping reels tab: ${e.message}`);
       return [];
     }
   }
@@ -1296,7 +1296,7 @@ class InstagramScraper {
   async scrapeSpecificReelFromReelsTab(reelsUrl, postLink) {
     // Open reels tab, find the reel matching postLink, and scrape its data
     try {
-      console.log(`🔄 Scraping specific reel from: ${reelsUrl} for post: ${postLink}`);
+      console.log(`Scraping specific reel from: ${reelsUrl} for post: ${postLink}`);
       await this.driver.get(reelsUrl);
       await this.driver.sleep(3000);
       
@@ -1336,7 +1336,7 @@ class InstagramScraper {
       }
       
       if (!postElements.length) {
-        console.log("⚠️ No post elements found using any selector");
+        console.log("No post elements found using any selector");
         return null;
       }
       
@@ -1484,10 +1484,10 @@ class InstagramScraper {
           await this.driver.switchTo().window(handles[0]);
           await this.driver.sleep(1000);
         } catch (e) {
-          console.log(`⚠️ Error closing tab: ${e.message}`);
+          console.log(`Error closing tab: ${e.message}`);
         }
       } catch (e) {
-        console.log(`⚠️ Error processing target reel: ${e.message}`);
+        console.log(`Error processing target reel: ${e.message}`);
         return null;
       }
       return postData;
@@ -1507,7 +1507,7 @@ class InstagramScraper {
       ));
       if (buttons.length > 0) {
         await buttons[0].click();
-        console.log('✅ Dismissed "Save your login info?" popup (button selector)');
+        console.log('Dismissed "Save your login info?" popup (button selector)');
         await this.driver.sleep(1000);
         return;
       }
@@ -1518,7 +1518,7 @@ class InstagramScraper {
       ));
       if (notNowSpans.length > 0) {
         await notNowSpans[0].click();
-        console.log('✅ Dismissed "Save your login info?" popup (span selector)');
+        console.log('Dismissed "Save your login info?" popup (span selector)');
         await this.driver.sleep(1000);
         return;
       }
@@ -1529,7 +1529,7 @@ class InstagramScraper {
         const text = (await btn.getText()).toLowerCase();
         if (text.includes('not now')) {
           await btn.click();
-          console.log('✅ Dismissed "Save your login info?" popup (fallback)');
+          console.log('Dismissed "Save your login info?" popup (fallback)');
           await this.driver.sleep(1000);
           break;
         }
@@ -1574,7 +1574,7 @@ class InstagramScraper {
           if (elements.length > 0) {
             // Try to click the first matching element
             await elements[0].click();
-            console.log('✅ Dismissed "automated behavior" popup');
+            console.log('Dismissed "automated behavior" popup');
             await this.driver.sleep(1000);
             return true;
           }
@@ -1595,7 +1595,7 @@ class InstagramScraper {
             // Check if it's clickable
             if (tagName === 'button' || role === 'button' || tabIndex === '0') {
               await element.click();
-              console.log('✅ Dismissed "automated behavior" popup (fallback)');
+              console.log('Dismissed "automated behavior" popup (fallback)');
               await this.driver.sleep(1000);
               return true;
             }
@@ -1607,13 +1607,14 @@ class InstagramScraper {
         // Ignore errors
       }
 
-      console.log('ℹ️ No "automated behavior" popup found to dismiss');
+      console.log('No "automated behavior" popup found to dismiss');
       return false;
     } catch (e) {
-      console.log(`⚠️ Error dismissing automated behavior popup: ${e.message}`);
+      console.log(`Error dismissing automated behavior popup: ${e.message}`);
       return false;
     }
   }
 }
 
 module.exports = { InstagramScraper };
+
