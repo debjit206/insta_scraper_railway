@@ -19,7 +19,7 @@ async function scrapeInstagramBulk(usernames, post_links, maxRetries) {
   const InstagramScraper = scraperModule.InstagramScraper || scraperModule.default || scraperModule;
   const results = [];
   
-  console.log(`🎯 Starting bulk scrape for ${usernames.length} items with ${maxRetries} retries...`);
+  console.log(`Starting bulk scrape for ${usernames.length} items with ${maxRetries} retries...`);
   
   // Process each username and post_link pair with fresh browser session
   for (let i = 0; i < usernames.length; i++) {
@@ -36,17 +36,17 @@ async function scrapeInstagramBulk(usernames, post_links, maxRetries) {
       let scraper = null;
       
       if (retryAttempt > 0) {
-        console.log(`🔄 Retry attempt ${retryAttempt}/${maxRetries} for ${username}`);
+        console.log(`Retry attempt ${retryAttempt}/${maxRetries} for ${username}`);
         // Add longer delay between retries
         const retryDelay = 5 + (retryAttempt * 2); // 5s, 7s, 9s, etc.
-        console.log(`⏳ Waiting ${retryDelay} seconds before retry...`);
+        console.log(`Waiting ${retryDelay} seconds before retry...`);
         await new Promise(resolve => setTimeout(resolve, retryDelay * 1000));
       }
       
       try {
         // Create fresh scraper instance for each request
         scraper = new InstagramScraper();
-        console.log("🔄 Setting up fresh browser session...");
+        console.log("Setting up fresh browser session...");
         await scraper.setupBrowser();
         
         // Try to login using cookies.json
@@ -54,31 +54,31 @@ async function scrapeInstagramBulk(usernames, post_links, maxRetries) {
         const cookiesPath = path.join(__dirname, 'cookies.json');
         
         if (fs.existsSync(cookiesPath)) {
-          console.log("🍪 Found cookies.json, attempting to load...");
+          console.log("Found cookies.json, attempting to load...");
           try {
             await scraper.driver.get('https://www.instagram.com/');
             await scraper.driver.sleep(3000);
             
             const cookies = JSON.parse(fs.readFileSync(cookiesPath, 'utf8'));
-            console.log(`📦 Loading ${cookies.length} cookies...`);
+            console.log(`Loading ${cookies.length} cookies...`);
             
             for (const cookie of cookies) {
               const { sameSite, ...rest } = cookie;
               try {
                 await scraper.driver.manage().addCookie(rest);
               } catch (e) {
-                console.log(`⚠️ Could not set cookie ${cookie.name}: ${e.message}`);
+                console.log(`Could not set cookie ${cookie.name}: ${e.message}`);
               }
             }
             
-            console.log("🔄 Refreshing page after loading cookies...");
+            console.log("Refreshing page after loading cookies...");
             await scraper.driver.navigate().refresh();
             await scraper.driver.sleep(3000);
             
             cookiesLoaded = await scraper.checkLoginStatus();
             
             if (cookiesLoaded) {
-              console.log('✅ Successfully logged in using cookies!');
+              console.log('Successfully logged in using cookies!');
               await scraper.dismissSaveLoginInfoPopup();
               await scraper.dismissAutomatedBehaviorPopup();
             } else {
@@ -107,7 +107,7 @@ async function scrapeInstagramBulk(usernames, post_links, maxRetries) {
           ...postData
         });
         
-        console.log(`✅ Successfully processed ${username}${retryAttempt > 0 ? ` (after ${retryAttempt} retries)` : ''}`);
+        console.log(`Successfully processed ${username}${retryAttempt > 0 ? ` (after ${retryAttempt} retries)` : ''}`);
         success = true;
         
       } catch (e) {
@@ -138,7 +138,7 @@ async function scrapeInstagramBulk(usernames, post_links, maxRetries) {
             await scraper.cleanup();
             console.log(`🧹 Browser cleanup complete for ${username}`);
           } catch (e) {
-            console.log(`⚠️ Error during cleanup for ${username}: ${e.message}`);
+            console.log(`Error during cleanup for ${username}: ${e.message}`);
           }
         }
       }
@@ -147,12 +147,12 @@ async function scrapeInstagramBulk(usernames, post_links, maxRetries) {
     // Add delay between requests (except for last request)
     if (i < usernames.length - 1) {
       const delay = 3;
-      console.log(`⏳ Waiting ${delay} seconds before next request...`);
+      console.log(`Waiting ${delay} seconds before next request...`);
       await new Promise(resolve => setTimeout(resolve, delay * 1000));
     }
   }
   
-  console.log(`\n✅ Bulk scraping complete! Processed ${results.length} items`);
+  console.log(`\n Bulk scraping complete! Processed ${results.length} items`);
   return results;
 }
 
@@ -208,5 +208,6 @@ app.get('/', (req, res) => {
 });
 
 app.listen(PORT, () => {
-  console.log(`🚀 API server listening on port ${PORT}`);
+  console.log(`API server listening on port ${PORT}`);
 }); 
+
