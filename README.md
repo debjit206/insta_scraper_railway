@@ -3,7 +3,7 @@
 An Instagram Reel scraper API built with Node.js, Express, Selenium, and Chrome.
 ---
 
-## 🚀 Features
+## Features
 - Scrapes Instagram Reel data (caption, likes, comments, views, timestamp) for a given username and post link.
 - Exposes a simple HTTP API endpoint (`/scrape`) for integration.
 - Uses cookies.json for Instagram login (no manual login required).
@@ -12,7 +12,7 @@ An Instagram Reel scraper API built with Node.js, Express, Selenium, and Chrome.
 - Fresh browser sessions for each request to prevent crashes
 ---
 
-## 📦 Project Structure
+## Project Structure
 ```
 insta_scraper_railway/
 ├── api_server.js      # Express API server
@@ -26,7 +26,7 @@ insta_scraper_railway/
 
 ---
 
-## 🛠️ Setup & Installation
+## Setup & Installation
 
 1. **Install dependencies:**
    ```sh
@@ -46,7 +46,7 @@ insta_scraper_railway/
 
 ---
 
-## 🛠️ API Usage
+## API Usage
 
 ### Endpoint
 ```
@@ -79,7 +79,7 @@ Content-Type: application/json
 
 ---
 
-## 🧪 Testing the API (with `test.js`)
+## Testing the API (with `test.js`)
 
 1. **Edit `test.js`** to set your API URL:
 
@@ -113,7 +113,7 @@ async function testBulkRequest() {
     retry: RETRY_ATTEMPTS
   };
   
-  console.log(`🔄 Testing with ${RETRY_ATTEMPTS} retry attempts...`);
+  console.log(`Testing with ${RETRY_ATTEMPTS} retry attempts...`);
   
   try {
     const response = await axios.post(API_URL, bulkPayload);
@@ -170,7 +170,7 @@ if (require.main === module) {
 
 ---
 
-## ⚠️ Notes
+## Notes
 - Make sure your `cookies.json` is valid and up-to-date for Instagram login.
 - The API uses fresh browser sessions for each request to prevent crashes.
 - Failed requests are automatically retried up to the specified retry limit.
